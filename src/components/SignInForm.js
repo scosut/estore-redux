@@ -4,20 +4,23 @@ import { Button, Card, CardBody, CardTitle, Form, FormFeedback, FormGroup, Input
 import Message from './Message';
 import { Link, withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { fetchUser, userResetInput, userUpdateInput, logoutUser, clearErrors, clearMessage, addMessage } from '../redux/actionCreators';
+import { fetchUser, clearInput, clearCart, setInput, logoutUser, clearErrors, clearMessage, addMessage } from '../redux/actionCreators';
 
 const mapStateToProps = state => {
   return {
     errors: state.errors,
-    user: state.user,
-    message: state.message
+    input: state.input,
+    message: state.message,
+    products: state.products,
+    user: state.user
   };
 };
 
 const mapDispatchToProps = {
-  fetchUser: (email, password) => fetchUser(email, password),
-  userResetInput: () => userResetInput(),
-  userUpdateInput: (e) => userUpdateInput(e),
+  fetchUser: (email, password, products) => fetchUser(email, password, products),
+  clearInput: (item) => clearInput(item),
+  clearCart: () => clearCart(),
+  setInput: (item, e) => setInput(item, e),
   logoutUser: () => logoutUser(),
   clearErrors: () => clearErrors(),
   clearMessage: () => clearMessage(),
@@ -27,27 +30,35 @@ const mapDispatchToProps = {
 class SignInForm extends Component {
   componentDidMount = () => {
     this.props.clearMessage();
-    this.props.userResetInput();
+    this.props.clearInput('user');
     this.props.clearErrors();
     this.logoutUser(this.props.location.pathname);
   }
 
   componentDidUpdate = (prevProps) => {
+    if (this.props.message.message === 'You are now logged in.') {
+      if (this.props.checkout) {
+        this.props.history.push('/checkout/shipping');
+      }
+    }
+
     if (this.props.location !== prevProps.location) {
       this.logoutUser(this.props.location.pathname);
     }
   }
 
   handleInput = (e) => {
-    this.props.userUpdateInput(e);
+    this.props.setInput('user', e);
   }
 
   handleClick = () => {
-    this.props.fetchUser(this.props.user.email, this.props.user.password);
+    this.props.fetchUser(this.props.input.user.email, this.props.input.user.password, this.props.products.products);
   }
 
   logoutUser = (url) => {
     if (url === "/signOut") {
+      this.props.clearCart();
+      this.props.clearInput('user');
       this.props.logoutUser();
       this.props.addMessage("You are now logged out.");
     }
@@ -71,12 +82,12 @@ class SignInForm extends Component {
               <Form>
                 <FormGroup>
                   <Label for="email" className="col-form-label">Email Address</Label>
-                  <Input type="text" name="email" id="email" className="flat" placeholder="Enter email" invalid={this.props.errors.errors.hasOwnProperty('email')} onChange={(e) => this.handleInput(e)} value={this.props.user.email} />
+                  <Input type="text" name="email" id="email" className="flat" placeholder="Enter email" invalid={this.props.errors.errors.hasOwnProperty('email')} onChange={(e) => this.handleInput(e)} value={this.props.input.user.email} />
                   <FormFeedback>{this.props.errors.errors.hasOwnProperty('email') ? this.props.errors.errors.email : ''}</FormFeedback>
                 </FormGroup>
                 <FormGroup>
                   <Label for="password" className="col-form-label">Password</Label>
-                  <Input type="password" name="password" id="password" className="flat" placeholder="Enter password" invalid={this.props.errors.errors.hasOwnProperty('password')} onChange={(e) => this.handleInput(e)} value={this.props.user.password} />
+                  <Input type="password" name="password" id="password" className="flat" placeholder="Enter password" invalid={this.props.errors.errors.hasOwnProperty('password')} onChange={(e) => this.handleInput(e)} value={this.props.input.user.password} />
                   <FormFeedback>{this.props.errors.errors.hasOwnProperty('password') ? this.props.errors.errors.password : ''}</FormFeedback>
                 </FormGroup>
                 <FormGroup className="d-flex align-items-center justify-content-between">

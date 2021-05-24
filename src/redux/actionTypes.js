@@ -6,18 +6,12 @@ export const PRODUCT_LOADING = 'PRODUCT_LOADING';
 export const ADD_PRODUCT = 'ADD_PRODUCT';
 export const PRODUCT_FAILED = 'PRODUCT_FAILED';
 
-export const PRODUCT_UPDATE_INPUT = 'PRODUCT_UPDATE_INPUT';
-export const PRODUCT_RESET_INPUT = 'PRODUCT_RESET_INPUT';
-export const PRODUCT_IMPORT = 'PRODUCT_IMPORT';
-export const PRODUCT_INITIALIZE = 'PRODUCT_INITIALIZE';
-
-
 export const ADD_REVIEW = 'ADD_REVIEW';
 export const ADD_REVIEW_FAILED = 'ADD_REVIEW_FAILED';
 
-export const REVIEW_UPDATE_INPUT = 'REVIEW_UPDATE_INPUT';
-export const REVIEW_RESET_INPUT = 'REVIEW_RESET_INPUT';
-
+export const SET_INPUT = 'SET_INPUT';
+export const SET_INPUT_FROM_OBJECT = 'SET_INPUT_FROM_OBJECT';
+export const CLEAR_INPUT = 'CLEAR_INPUT';
 
 export const ADD_ERRORS = 'ADD_ERRORS';
 export const CLEAR_ERRORS = 'CLEAR_ERRORS';
@@ -31,13 +25,25 @@ export const TOGGLE_MODAL = 'TOGGLE_MODAL';
 export const SET_PAGE_INDEX = 'SET_PAGE_INDEX';
 
 export const EXECUTE_SEARCH = 'EXECUTE_SEARCH';
-export const SEARCH_UPDATE_INPUT = 'SEARCH_UPDATE_INPUT';
-export const SEARCH_RESET_INPUT = 'SEARCH_RESET_INPUT';
-
 
 export const LOGIN_USER = 'LOGIN_USER';
 export const LOGOUT_USER = 'LOGOUT_USER';
 export const USER_UPDATE = 'USER_UPDATE';
-export const USER_IMPORT = 'USER_IMPORT';
-export const USER_UPDATE_INPUT = 'USER_UPDATE_INPUT';
-export const USER_RESET_INPUT = 'USER_RESET_INPUT';
+
+export const SET_USER = 'SET_USER';
+export const SET_SHIPPING = 'SET_SHIPPING';
+export const SET_PAYMENT = 'SET_PAYMENT';
+export const ADD_ITEM = 'ADD_ITEM';
+export const DELETE_ITEM = 'DELETE_ITEM';
+export const UPDATE_ITEM_QUANTITY = 'UPDATE_ITEM_QUANTITY';
+export const CLEAR_CART = 'CLEAR_CART';
+export const LOAD_CART = 'LOAD_CART';
+
+export const ORDER_LOADING = 'ORDER_LOADING';
+export const ADD_ORDER = 'ADD_ORDER'
+export const ORDER_FAILED = 'ORDER_FAILED';
+export const CLEAR_ORDER = 'CLEAR_ORDER';
+
+export const ORDERS_LOADING = 'ORDERS_LOADING';
+export const ADD_ORDERS = 'ADD_ORDERS';
+export const ORDERS_FAILED = 'ORDERS_FAILED';

@@ -2,46 +2,43 @@ import React, { Component } from 'react';
 import { Button, Card, CardBody, CardTitle, Form, FormFeedback, FormGroup, Input, Label } from 'reactstrap';
 import Checkout from './Checkout';
 import { withRouter } from 'react-router-dom';
+import { connect } from 'react-redux';
+import { setInput, checkPayment, clearErrors, clearMessage } from '../redux/actionCreators';
+
+const mapStateToProps = state => {
+  return {
+    cart: state.cart,
+    errors: state.errors,
+    input: state.input,
+    message: state.message
+  };
+};
+
+const mapDispatchToProps = {
+  setInput: (item, e) => setInput(item, e),
+  checkPayment: (payment) => checkPayment(payment),
+  clearErrors: () => clearErrors(),
+  clearMessage: () => clearMessage()
+};
 
 class PaymentForm extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      method: this.props.cart.payment ? this.props.cart.payment : 'PayPal',
-      errors: {
-        method: ''
-      }
+  componentDidMount = () => {
+    this.props.clearErrors();
+    this.props.clearMessage();
+  }
+
+  componentDidUpdate = () => {
+    if (this.props.message.message === 'payment successful') {
+      this.props.history.push('/checkout/order-details');
     }
   }
 
-  clearError = (e) => {
-    this.setState({ errors: { ...this.state.errors, [e.target.name]: '' } });
+  handleInput = (e) => {
+    this.props.setInput('payment', e);
   }
 
-  setProperty = (e) => {
-    this.setState({ [e.target.name]: e.target.value }, () => this.clearError(e));
-  }
-
-  setErrors = (obj) => {
-    this.setState({ errors: obj });
-  }
-
-  update = () => {
-    const errors = { method: '' };
-    const { cart, cartHandler, history } = this.props;
-
-    if (this.state.method.length === 0) {
-      errors.method = 'Please select the payment method.';
-    }
-
-    if (Object.values(errors).filter(val => val.length > 0).length) {
-      this.setErrors(errors);
-    }
-    else {
-      cart.updatePayment(this.state.method);
-      cartHandler(cart);
-      history.push('/checkout/order-details');
-    }
+  handleClick = () => {
+    this.props.checkPayment(this.props.input.payment.method);
   }
 
   render() {
@@ -58,17 +55,17 @@ class PaymentForm extends Component {
                 <FormGroup>
                   <Label for="method" className="col-form-label d-block">Payment Method</Label>
                   <Input className="ml-0"
-                    checked={this.state.method === 'PayPal'}
+                    checked={this.props.input.payment.method.length > 0}
                     id="method"
-                    invalid={this.state.errors.method.length > 0}
                     name="method"
-                    onChange={(e) => this.setProperty(e)}
                     type="radio"
-                    value={this.state.method} /> PayPal
-                  <FormFeedback>{this.state.errors.method}</FormFeedback>
+                    value="PayPal"
+                    invalid={this.props.errors.errors.hasOwnProperty('payment')}
+                    onChange={(e) => this.handleInput(e)} /> <Label for="method">PayPal</Label>
+                  <FormFeedback>{this.props.errors.errors.hasOwnProperty('payment') ? this.props.errors.errors.payment : ''}</FormFeedback>
                 </FormGroup>
                 <FormGroup>
-                  <Button color="dark" onClick={() => this.update()}>CONTINUE</Button>
+                  <Button color="dark" onClick={() => this.handleClick()}>CONTINUE</Button>
                 </FormGroup>
               </Form>
             </CardBody>
@@ -79,4 +76,4 @@ class PaymentForm extends Component {
   }
 }
 
-export default withRouter(PaymentForm);
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(PaymentForm));

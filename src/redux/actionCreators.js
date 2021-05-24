@@ -4,7 +4,7 @@ import Utility from '../shared/utility';
 // PRODUCTS
 export const fetchProducts = () => dispatch => {
   dispatch(productsLoading());
-  return fetch('http://www.local-estore-data.com/api/product')
+  return fetch('https://cart.projectsbyscott.com/route/product')
     .then(response => {
       if (response.ok) {
         return response;
@@ -26,7 +26,7 @@ export const fetchProducts = () => dispatch => {
 
 export const fetchProductById = (productId) => dispatch => {
   dispatch(productLoading());
-  return fetch(`http://www.local-estore-data.com/api/product/details/?id=${productId}`)
+  return fetch(`https://cart.projectsbyscott.com/route/product/details/?id=${productId}`)
     .then(response => {
       if (response.ok) {
         return response;
@@ -50,22 +50,25 @@ export const postProduct = (obj) => dispatch => {
   const newProduct = {
     name: obj.name,
     price: obj.price,
-    image: obj.image,
+    image: '',
     brand: obj.brand,
     quantity: obj.quantity,
     description: obj.description
   };
-  newProduct.image = "/assets/images/tbd.jpg";
 
-  return fetch('http://www.local-estore-data.com/api/product/add', {
+  const data = new FormData();
+  data.append('product', JSON.stringify(newProduct));
+  data.append('file', obj.image);
+
+  return fetch('https://cart.projectsbyscott.com/route/product/add', {
     method: "POST",
-    body: JSON.stringify(newProduct)
+    body: data
   })
     .then(response => response.json())
     .then(response => {
       if (response.succeeded) {
         dispatch(clearErrors());
-        dispatch(productResetInput());
+        dispatch(clearInput('product'));
         dispatch(addMessage("Product added successfully."));
         dispatch(addProducts(response.products));
       }
@@ -83,21 +86,28 @@ export const updateProduct = (obj) => dispatch => {
     id: obj.id,
     name: obj.name,
     price: obj.price,
-    image: obj.image,
+    image: '',
     brand: obj.brand,
     quantity: obj.quantity,
     description: obj.description
   };
 
-  return fetch('http://www.local-estore-data.com/api/product/update', {
+  const data = new FormData();
+  data.append('product', JSON.stringify(existingProduct));
+
+  if (obj.image) {
+    data.append('file', obj.image);
+  }
+
+  return fetch('https://cart.projectsbyscott.com/route/product/update', {
     method: "POST",
-    body: JSON.stringify(existingProduct)
+    body: data
   })
     .then(response => response.json())
     .then(response => {
       if (response.succeeded) {
         dispatch(clearErrors());
-        dispatch(productResetInput());
+        dispatch(clearInput('product'));
         dispatch(addMessage("Product updated successfully."));
         dispatch(addProducts(response.products));
       }
@@ -111,7 +121,7 @@ export const updateProduct = (obj) => dispatch => {
 };
 
 export const deleteProduct = productId => dispatch => {
-  return fetch(`http://www.local-estore-data.com/api/product/delete`, {
+  return fetch(`https://cart.projectsbyscott.com/route/product/delete`, {
     method: "POST",
     body: JSON.stringify({ id: productId })
   })
@@ -148,32 +158,6 @@ export const addProduct = product => ({
   payload: product
 });
 
-export const productUpdateInput = (e) => ({
-  type: actionTypes.PRODUCT_UPDATE_INPUT,
-  payload: e.target.value,
-  key: e.target.name
-});
-
-export const productResetInput = () => ({
-  type: actionTypes.PRODUCT_RESET_INPUT
-});
-
-export const productImport = product => ({
-  type: actionTypes.PRODUCT_IMPORT,
-  payload: product,
-  id: product.id,
-  name: product.name,
-  image: product.image,
-  price: product.price,
-  brand: product.brand,
-  quantity: product.quantity,
-  description: product.description
-});
-
-export const productInitialize = () => ({
-  type: actionTypes.PRODUCT_INITIALIZE
-});
-
 
 // REVIEWS
 export const postReview = (rating, comments, productId, userId) => dispatch => {
@@ -186,7 +170,7 @@ export const postReview = (rating, comments, productId, userId) => dispatch => {
   const reviewDate = new Date().toISOString();
   newReview.dateReviewed = reviewDate.slice(0, 19).replace('T', ' ');
 
-  return fetch('http://www.local-estore-data.com/api/review/add', {
+  return fetch('https://cart.projectsbyscott.com/route/review/add', {
     method: "POST",
     body: JSON.stringify(newReview)
   })
@@ -194,7 +178,7 @@ export const postReview = (rating, comments, productId, userId) => dispatch => {
     .then(response => {
       if (response.succeeded) {
         dispatch(clearErrors());
-        dispatch(reviewResetInput());
+        dispatch(clearInput('review'));
         dispatch(addMessage(`You reviewed this item on ${Utility.formatDate(reviewDate)}.`));
         dispatch(addReview(response.product));
         dispatch(addProducts(response.products))
@@ -213,16 +197,6 @@ export const addReview = product => ({
   payload: product
 });
 
-export const reviewUpdateInput = (e) => ({
-  type: actionTypes.REVIEW_UPDATE_INPUT,
-  payload: e.target.value,
-  key: e.target.name
-});
-
-export const reviewResetInput = () => ({
-  type: actionTypes.REVIEW_RESET_INPUT
-});
-
 
 // USERS
 export const fetchUser = (email, password) => dispatch => {
@@ -231,7 +205,7 @@ export const fetchUser = (email, password) => dispatch => {
     password: password
   };
 
-  return fetch('http://www.local-estore-data.com/api/user/login', {
+  return fetch('https://cart.projectsbyscott.com/route/user/login', {
     method: "POST",
     body: JSON.stringify(user)
   })
@@ -239,8 +213,10 @@ export const fetchUser = (email, password) => dispatch => {
     .then(response => {
       if (response.succeeded) {
         dispatch(clearErrors());
-        dispatch(userResetInput());
+        dispatch(clearInput('user'));
         dispatch(addMessage("You are now logged in."));
+        dispatch(setUser(response.user.id))
+        dispatch(loadCart(response.user.id, response.products));
         dispatch(loginUser(response.user));
       }
       else {
@@ -261,7 +237,7 @@ export const registerUser = (name, email, password, confirm) => dispatch => {
   };
   newUser.role = "customer";
 
-  return fetch('http://www.local-estore-data.com/api/user/register', {
+  return fetch('https://cart.projectsbyscott.com/route/user/register', {
     method: "POST",
     body: JSON.stringify(newUser)
   })
@@ -269,7 +245,7 @@ export const registerUser = (name, email, password, confirm) => dispatch => {
     .then(response => {
       if (response.succeeded) {
         dispatch(clearErrors());
-        dispatch(userResetInput());
+        dispatch(clearInput('user'));
         dispatch(addMessage("User registered successfully."));
       }
       else {
@@ -290,7 +266,7 @@ export const updateUser = (id, name, email, password, confirm) => dispatch => {
     confirm: confirm
   };
 
-  return fetch('http://www.local-estore-data.com/api/user/update', {
+  return fetch('https://cart.projectsbyscott.com/route/user/update', {
     method: "POST",
     body: JSON.stringify(existingUser)
   })
@@ -298,7 +274,7 @@ export const updateUser = (id, name, email, password, confirm) => dispatch => {
     .then(response => {
       if (response.succeeded) {
         dispatch(clearErrors());
-        dispatch(userResetInput());
+        dispatch(clearInput('user'));
         dispatch(addMessage("User profile updated successfully."));
         dispatch(userUpdate(response.user));
       }
@@ -320,26 +296,9 @@ export const logoutUser = () => ({
   type: actionTypes.LOGOUT_USER
 });
 
-export const userImport = user => ({
-  type: actionTypes.USER_IMPORT,
-  payload: user,
-  name: user.name,
-  email: user.email
-});
-
 export const userUpdate = user => ({
   type: actionTypes.USER_UPDATE,
   payload: user
-});
-
-export const userUpdateInput = (e) => ({
-  type: actionTypes.USER_UPDATE_INPUT,
-  payload: e.target.value,
-  key: e.target.name
-});
-
-export const userResetInput = () => ({
-  type: actionTypes.USER_RESET_INPUT
 });
 
 
@@ -388,18 +347,270 @@ export const setPageIndex = index => {
   };
 };
 
+
 // SEARCH
 export const executeSearch = results => ({
   type: actionTypes.EXECUTE_SEARCH,
   payload: results
 });
 
-export const searchUpdateInput = (e) => ({
-  type: actionTypes.SEARCH_UPDATE_INPUT,
+
+// INPUT
+export const setInput = (item, e) => ({
+  type: actionTypes.SET_INPUT,
   payload: e.target.value,
-  key: e.target.name
+  key: e.target.name,
+  item: item
 });
 
-export const searchResetInput = () => ({
-  type: actionTypes.SEARCH_RESET_INPUT
+export const setInputFromObject = (item, obj) => ({
+  type: actionTypes.SET_INPUT_FROM_OBJECT,
+  payload: obj,
+  item: item
+});
+
+export const clearInput = (item) => ({
+  type: actionTypes.CLEAR_INPUT,
+  item: item
+});
+
+
+// CART
+export const setUser = user => ({
+  type: actionTypes.SET_USER,
+  payload: user
+});
+
+export const setShipping = shipping => ({
+  type: actionTypes.SET_SHIPPING,
+  payload: shipping
+});
+
+export const setPayment = payment => ({
+  type: actionTypes.SET_PAYMENT,
+  payload: payment
+});
+
+export const addItem = item => ({
+  type: actionTypes.ADD_ITEM,
+  payload: item
+});
+
+export const deleteItem = item => ({
+  type: actionTypes.DELETE_ITEM,
+  payload: item
+});
+
+export const updateItemQuantity = (item, quantity) => ({
+  type: actionTypes.UPDATE_ITEM_QUANTITY,
+  payload: item,
+  quantity: quantity
+});
+
+export const clearCart = () => ({
+  type: actionTypes.CLEAR_CART
+});
+
+export const loadCart = (user, products) => ({
+  type: actionTypes.LOAD_CART,
+  payload: user,
+  products: products
+});
+
+
+// ORDERS
+export const fetchOrders = (user) => dispatch => {
+  dispatch(ordersLoading());
+  return fetch('https://cart.projectsbyscott.com/route/order')
+    .then(response => {
+      if (response.ok) {
+        return response;
+      } else {
+        const error = new Error(`Error ${response.status}: ${response.statusText}`);
+        error.response = response;
+        throw error;
+      }
+    },
+      error => {
+        const errMess = new Error(error.message);
+        throw errMess;
+      }
+    )
+    .then(response => response.json())
+    .then(orders => dispatch(addOrders(orders, user)))
+    .catch(error => dispatch(ordersFailed(error.message)));
+};
+
+export const fetchOrderById = (orderId) => dispatch => {
+  dispatch(orderLoading());
+  return fetch(`https://cart.projectsbyscott.com/route/order/details/?id=${orderId}`)
+    .then(response => {
+      if (response.ok) {
+        return response;
+      } else {
+        const error = new Error(`Error ${response.status}: ${response.statusText}`);
+        error.response = response;
+        throw error;
+      }
+    },
+      error => {
+        const errMess = new Error(error.message);
+        throw errMess;
+      }
+    )
+    .then(response => response.json())
+    .then(order => dispatch(addOrder(order)))
+    .catch(error => dispatch(orderFailed(error.message)));
+};
+
+export const checkShipping = (obj) => dispatch => {
+  const newOrder = {
+    address: obj.address,
+    city: obj.city,
+    postal: obj.postal,
+    country: obj.country
+  };
+
+  return fetch('https://cart.projectsbyscott.com/route/order/shipping', {
+    method: "POST",
+    body: JSON.stringify(newOrder)
+  })
+    .then(response => response.json())
+    .then(response => {
+      if (response.succeeded) {
+        dispatch(addMessage("shipping successful"));
+        dispatch(setShipping(newOrder));
+      }
+      else {
+        dispatch(addErrors(response.errors));
+      }
+    })
+    .catch(error => {
+      console.log('check shipping: ', error.message);
+    });
+};
+
+export const checkPayment = payment => dispatch => {
+  const newOrder = {
+    payment: payment
+  };
+
+  return fetch('https://cart.projectsbyscott.com/route/order/payment', {
+    method: "POST",
+    body: JSON.stringify(newOrder)
+  })
+    .then(response => response.json())
+    .then(response => {
+      if (response.succeeded) {
+        dispatch(addMessage("payment successful"));
+        dispatch(setPayment(newOrder.payment))
+      }
+      else {
+        dispatch(addErrors(response.errors));
+      }
+    })
+    .catch(error => {
+      console.log('check payment: ', error.message);
+    });
+};
+
+export const postOrder = (obj) => dispatch => {
+  const newOrder = {
+    address: obj.address,
+    city: obj.city,
+    postal: obj.postal,
+    country: obj.country,
+    payment: obj.payment,
+    items: obj.items,
+    userId: obj.userId
+  };
+  const datePlaced = new Date().toISOString();
+  newOrder.datePlaced = datePlaced.slice(0, 19).replace('T', ' ');
+
+  return fetch('https://cart.projectsbyscott.com/route/order/add', {
+    method: "POST",
+    body: JSON.stringify(newOrder)
+  })
+    .then(response => response.json())
+    .then(response => {
+      if (response.succeeded) {
+        dispatch(addOrder(response.order));
+        dispatch(addProducts(response.products));
+        dispatch(clearInput('shipping'));
+        dispatch(clearInput('payment'));
+        dispatch(clearCart());
+        localStorage.removeItem(`cart_${response.order.userId}`);
+      }
+      else {
+        dispatch(addMessage(response.message));
+      }
+    })
+    .catch(error => {
+      console.log('add order: ', error.message);
+    });
+};
+
+export const updateOrder = (obj) => dispatch => {
+  const existingOrder = {
+    id: obj.id,
+    datePaid: '',
+    dateDelivered: ''
+  };
+
+  if (obj.datePaid) {
+    existingOrder.datePaid = new Date().toISOString().slice(0, 19).replace('T', ' ');
+  }
+
+  if (obj.dateDelivered) {
+    existingOrder.dateDelivered = new Date().toISOString().slice(0, 19).replace('T', ' ');
+  }
+
+  return fetch('https://cart.projectsbyscott.com/route/order/update', {
+    method: "POST",
+    body: JSON.stringify(existingOrder)
+  })
+    .then(response => response.json())
+    .then(response => {
+      if (response.succeeded) {
+        dispatch(addOrder(response.order));
+      }
+      else {
+        dispatch(addMessage(response.message));
+      }
+    })
+    .catch(error => {
+      console.log('update order: ', error.message);
+    });
+};
+
+export const orderLoading = () => ({
+  type: actionTypes.ORDER_LOADING
+});
+
+export const orderFailed = errMess => ({
+  type: actionTypes.ORDER_FAILED,
+  payload: errMess
+});
+
+export const addOrder = order => ({
+  type: actionTypes.ADD_ORDER,
+  payload: order
+});
+
+export const clearOrder = () => ({
+  type: actionTypes.CLEAR_ORDER
+});
+
+export const ordersLoading = () => ({
+  type: actionTypes.ORDERS_LOADING
+});
+
+export const ordersFailed = errMess => ({
+  type: actionTypes.ORDERS_FAILED,
+  payload: errMess
+});
+
+export const addOrders = (orders, user) => ({
+  type: actionTypes.ADD_ORDERS,
+  payload: user.role === 'administrator' ? orders : orders.filter(order => order.userId === user.id)
 });

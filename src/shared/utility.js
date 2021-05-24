@@ -6,7 +6,7 @@ class Utility {
 
   static formatDate = (str) => {
     const dtf = new Intl.DateTimeFormat('en-US');
-    return dtf.format(new Date(str));
+    return str.length > 0 ? dtf.format(new Date(str)) : str;
   }
 
   static getId = (arr) => {
@@ -24,9 +24,12 @@ class Utility {
     return pages;
   }
 
-  static getRating = (reviews) => {
-    const num = Math.round((reviews.reduce((a, c) => a + c.rating, 0) / reviews.length) / 0.5) * 0.5;
-    return isNaN(num) ? 'review-0' : `review-${num}`.replace('.', '-');
+  static getSubtotal = (arr) => {
+    return arr.reduce((a, c) => a + (Number(c.quantity) * Number(c.price)), 0);
+  }
+
+  static getTotalQuantity = (arr) => {
+    return arr.reduce((a, c) => a + Number(c.quantity), 0);
   }
 }
 

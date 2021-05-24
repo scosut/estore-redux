@@ -3,7 +3,12 @@ import NavigationTop from './NavigationTop';
 import ProductGallery from './ProductGallery';
 import ProductDetails from './ProductDetails';
 import ProductDashboard from './ProductDashboard';
+import OrderDashboard from './OrderDashboard';
 import ProductForm from './ProductForm';
+import CartDetails from './CartDetails';
+import ShippingForm from './ShippingForm';
+import PaymentForm from './PaymentForm';
+import OrderDetails from './OrderDetails';
 import SignInForm from './SignInForm';
 import RegisterForm from './RegisterForm';
 import UserProfileForm from './UserProfileForm';
@@ -27,7 +32,7 @@ const mapDispatchToProps = {
 
 class MainComponent extends Component {
   componentDidMount() {
-    this.props.fetchProducts()
+    this.props.fetchProducts();
   }
 
   render() {
@@ -50,7 +55,14 @@ class MainComponent extends Component {
             render={() => <ProductDashboard products={this.props.products.products} />} />
           <Route exact path='/products/add' component={ProductForm} />
           <Route exact path='/products/edit/:productId'
-            render={() => <ProductForm products={this.props.products.products} />} />
+            render={() => <ProductForm products={this.props.products.products} edit />} />
+          <Route exact path='/orders' component={OrderDashboard} />
+          <Route exact path='/cart' component={CartDetails} />
+          <Route exact path='/checkout/signIn' render={() => <SignInForm checkout />} />
+          <Route exact path='/checkout/shipping' component={ShippingForm} />
+          <Route exact path='/checkout/payment' component={PaymentForm} />
+          <Route exact path='/checkout/order-details' component={OrderDetails} />
+          <Route exact path='/order-details/:orderId' component={OrderDetails} />
           <Route exact path='/signIn' component={SignInForm} />
           <Route exact path='/signOut' component={SignInForm} />
           <Route exact path='/register' component={RegisterForm} />

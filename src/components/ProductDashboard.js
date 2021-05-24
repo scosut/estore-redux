@@ -5,7 +5,7 @@ import PaginationBottom from './PaginationBottom';
 import Utility from '../shared/utility';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { toggleModal, deleteProduct, productInitialize, setPageIndex } from '../redux/actionCreators';
+import { toggleModal, deleteProduct, setPageIndex } from '../redux/actionCreators';
 
 const mapStateToProps = state => {
   return {
@@ -18,16 +18,10 @@ const mapStateToProps = state => {
 const mapDispatchToProps = {
   toggleModal: (item) => toggleModal(item),
   setPageIndex: (index) => setPageIndex(index),
-  deleteProduct: (id) => deleteProduct(id),
-  productInitialize: () => productInitialize()
+  deleteProduct: (id) => deleteProduct(id)
 };
 
 class ProductDashboard extends Component {
-  componentDidMount = () => {
-    this.props.productInitialize();
-    this.props.setPageIndex(0);
-  }
-
   pageHandler = (index, e) => {
     e.preventDefault();
 
@@ -106,9 +100,10 @@ class ProductDashboard extends Component {
         }
         <ModalGeneric
           body={`You have chosen to delete the ${this.props.modal.item.name} from your inventory.`}
+          confirmHandler={() => this.deleteHandler(this.props.modal.item.id)}
           isOpen={this.props.modal.modalOpen}
-          toggle={this.props.toggleModal} title="Delete Product"
-          confirmHandler={() => this.deleteHandler(this.props.modal.item.id)} />
+          title="Delete Product"
+          toggle={this.props.toggleModal} />
       </div>
     );
   }

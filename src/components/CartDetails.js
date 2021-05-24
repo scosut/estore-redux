@@ -1,32 +1,52 @@
 import React, { Component } from 'react';
-import { Button, Card, CardBody, Col, Input, Row } from 'reactstrap';
-import TooltipGeneric from './TooltipGeneric';
+import { Button, Card, CardBody, Col, Input, Row, UncontrolledTooltip } from 'reactstrap';
 import ModalGeneric from './ModalGeneric';
 import { Link, withRouter } from 'react-router-dom';
+import { connect } from 'react-redux';
+import { deleteItem, updateItemQuantity, toggleModal } from '../redux/actionCreators';
+import Utility from '../shared/utility';
 
-const CartItem = ({ hasDivider, index, item, quantityHandler, toggle }) => {
+const mapStateToProps = state => {
+  return {
+    cart: state.cart,
+    input: state.input,
+    modal: state.modal,
+    products: state.products,
+    user: state.user
+  };
+};
+
+const mapDispatchToProps = {
+  toggleModal: (item) => toggleModal(item),
+  deleteItem: (item) => deleteItem(item),
+  updateItemQuantity: (item, quantity) => updateItemQuantity(item, quantity)
+};
+
+const CartItem = ({ hasDivider, item, productQuantity, quantityHandler, toggle }) => {
   return (
     <React.Fragment>
       <Row>
         <Col xs={3} lg={2}>
-          <img src={item.product.image} alt={item.product.name} className="img-fluid img-shadow" />
+          <img src={item.image} alt={item.name} className="img-fluid img-shadow" />
         </Col>
         <Col xs={3} lg={4}>
-          {item.product.name}
+          {item.name}
         </Col>
         <Col xs={2}>
-          {item.product.getPrice()}
+          {item.price}
         </Col>
         <Col xs={2}>
-          <Input type="select" name="qty" id="qty" className="flat w-auto" value={item.quantity} onChange={(e) => quantityHandler(item, e)}>
-            {[...Array(item.product.inStock).keys()].map(i =>
-              <option key={i} disabled={(i + 1) === item.quantity}>{i + 1}</option>)
+          <Input type="select" name="quantity" id="quantity" className="flat w-auto" value={item.quantity} onChange={(e) => quantityHandler(item, e)}>
+            {[...Array(Number(productQuantity)).keys()].map(i =>
+              <option key={i} disabled={(i + 1) === Number(item.quantity)}>{i + 1}</option>)
             }
           </Input>
         </Col>
         <Col>
-          <i id={`delItemLink${index}`} className="fa fa-trash text-success" onClick={() => toggle(item)} />
-          <TooltipGeneric placement="bottom" target={`delItemLink${index}`} text="Delete item." />
+          <i id={`deleteItemLink${item.id}`} className="fa fa-trash text-success" onClick={() => toggle({ id: item.id, name: item.name })} />
+          <UncontrolledTooltip boundariesElement="window" placement="bottom" target={`deleteItemLink${item.id}`}>
+            Delete item
+          </UncontrolledTooltip>
         </Col>
       </Row>
       {hasDivider && <div className="divider" />}
@@ -35,39 +55,35 @@ const CartItem = ({ hasDivider, index, item, quantityHandler, toggle }) => {
 }
 
 class CartDetails extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      modalOpen: false,
-      item: null
-    }
+  componentDidMount = () => {
+    this.props.cart.items.forEach(item => {
+      const productQuantity = this.props.products.products.filter(product => product.id === item.productId)[0].quantity;
+
+      if (Number(item.quantity) > Number(productQuantity)) {
+        this.props.updateItemQuantity(item, productQuantity);
+      }
+    });
   }
 
-  toggle = (item = this.state.item) => {
-    this.setState({ modalOpen: !this.state.modalOpen, item: item });
+  componentDidUpdate = () => {
+    if (this.props.cart.items.length === 0) {
+      this.props.history.push('/');
+    }
   }
 
   quantityHandler = (item, e) => {
-    const { cart, cartHandler } = this.props;
-    cart.updateItem(item, Number(e.target.value));
-    cartHandler(cart);
+    this.props.updateItemQuantity(item, e.target.value);
   }
 
-  confirmHandler = () => {
-    const { cart, cartHandler, history } = this.props;
-    cart.deleteItem(this.state.item);
-    cartHandler(cart);
-    this.toggle(this.state.item);
-
-    if (!cart.items.length) {
-      history.push('/');
-    }
+  deleteHandler = (id) => {
+    const cartItem = this.props.cart.items.filter(item => item.id === id)[0];
+    this.props.deleteItem(cartItem);
+    this.props.toggleModal();
   }
 
   render() {
-    const { cart, user } = this.props;
-    const quantity = cart.getTotalQuantity();
-    const subtotal = cart.getSubtotal();
+    const totalQuantity = Utility.getTotalQuantity(this.props.cart.items);
+    const subtotal = Utility.getSubtotal(this.props.cart.items);
 
     return (
       <div className="container">
@@ -76,30 +92,30 @@ class CartDetails extends Component {
         </div>
         <Row className="row-product">
           <Col sm={7} md={8} className="mb-5 cart">
-            {cart.items.map((item, index, arr) => {
+            {this.props.cart.items.map((item, index, arr) => {
               return (
                 <CartItem
                   hasDivider={index < arr.length - 1}
-                  index={index}
                   item={item}
-                  key={index}
+                  productQuantity={this.props.products.products.filter(product => product.id === item.productId)[0].quantity}
+                  key={item.id}
                   quantityHandler={this.quantityHandler}
-                  toggle={this.toggle} />
+                  toggle={this.props.toggleModal} />
               )
             })}
           </Col>
           <Col sm={5} md={4} className="mb-5">
             <Card className="summary">
               <CardBody className="flex-column">
-                <div>{`SUBTOTAL (${quantity} ITEM${quantity > 1 ? 'S' : ''}):`}</div>
-                <div>{subtotal}</div>
+                <div>{`SUBTOTAL (${totalQuantity} ITEM${totalQuantity !== 1 ? 'S' : ''}):`}</div>
+                <div>{Utility.formatCurrency(subtotal)}</div>
                 <div className="divider" />
                 <div className="w-100">
                   <Button
                     color="dark"
                     className="btn-block"
                     tag={Link}
-                    to={user ? '/checkout/shipping' : '/checkout/signIn'}>
+                    to={this.props.user.user.id ? '/checkout/shipping' : '/checkout/signIn'}>
                     CHECKOUT
                   </Button>
                 </div>
@@ -108,13 +124,14 @@ class CartDetails extends Component {
           </Col>
         </Row>
         <ModalGeneric
-          body={`You have chosen to remove the ${this.state.item ? this.state.item.product.name : ''} from your cart.`}
-          confirmHandler={this.confirmHandler}
-          isOpen={this.state.modalOpen}
-          toggle={this.toggle} title="Delete Item" />
+          body={`You have chosen to delete the ${this.props.modal.item.name} from your cart.`}
+          confirmHandler={() => this.deleteHandler(this.props.modal.item.id)}
+          isOpen={this.props.modal.modalOpen}
+          title="Delete Item"
+          toggle={this.props.toggleModal} />
       </div>
     );
   }
 }
 
-export default withRouter(CartDetails);
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(CartDetails));

@@ -19,10 +19,6 @@ const mapDispatchToProps = {
 };
 
 class ProductGallery extends Component {
-  componentDidMount = () => {
-    this.props.setPageIndex(0);
-  }
-
   pageHandler = (index, e) => {
     e.preventDefault();
 
@@ -66,7 +62,7 @@ class ProductGallery extends Component {
                     <Col key={product.id} sm={6} md={4} className="mb-5">
                       <Card>
                         <Link to={`/product-details/${product.id}`}>
-                          <CardImg top className="img-shadow" src={product.image} alt={product.name} />
+                          <CardImg top className="img-shadow" src={`${product.image}?${new Date().toISOString()}`} alt={product.name} />
                         </Link>
                         <CardBody>
                           <CardTitle tag="h5">{product.name}</CardTitle>

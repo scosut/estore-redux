@@ -2,64 +2,48 @@ import React, { Component } from 'react';
 import Checkout from './Checkout';
 import { Button, Card, CardBody, CardTitle, Form, FormFeedback, FormGroup, Input, Label } from 'reactstrap';
 import { withRouter } from 'react-router-dom';
+import { connect } from 'react-redux';
+import { setInput, checkShipping, clearErrors, clearMessage } from '../redux/actionCreators';
+
+const mapStateToProps = state => {
+  return {
+    cart: state.cart,
+    errors: state.errors,
+    input: state.input,
+    message: state.message
+  };
+};
+
+const mapDispatchToProps = {
+  setInput: (item, e) => setInput(item, e),
+  checkShipping: (shipping) => checkShipping(shipping),
+  clearErrors: () => clearErrors(),
+  clearMessage: () => clearMessage()
+};
 
 class ShippingForm extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      address: this.props.cart.shipping ? this.props.cart.shipping.address : '',
-      city: this.props.cart.shipping ? this.props.cart.shipping.city : '',
-      postal: this.props.cart.shipping ? this.props.cart.shipping.postal : '',
-      country: this.props.cart.shipping ? this.props.cart.shipping.country : '',
-      errors: {
-        address: '',
-        city: '',
-        postal: '',
-        country: ''
-      }
+  componentDidMount = () => {
+    this.props.clearErrors();
+    this.props.clearMessage();
+  }
+
+  componentDidUpdate = () => {
+    if (this.props.message.message === 'shipping successful') {
+      this.props.history.push('/checkout/payment');
     }
   }
 
-  clearError = (e) => {
-    this.setState({ errors: { ...this.state.errors, [e.target.name]: '' } });
+  handleInput = (e) => {
+    this.props.setInput('shipping', e);
   }
 
-  setProperty = (e) => {
-    this.setState({ [e.target.name]: e.target.value }, () => this.clearError(e));
-  }
-
-  setErrors = (obj) => {
-    this.setState({ errors: obj });
-  }
-
-  update = () => {
-    const { cart, cartHandler, history } = this.props;
-    const errors = { address: '', city: '', postal: '', country: '' };
-
-    if (this.state.address.length === 0) {
-      errors.address = 'Please provide the address.';
-    }
-
-    if (this.state.city.length === 0) {
-      errors.city = 'Please provide the city.';
-    }
-
-    if (this.state.postal.length === 0) {
-      errors.postal = 'Please provide the postal code.';
-    }
-
-    if (this.state.country.length === 0) {
-      errors.country = 'Please provide the country.';
-    }
-
-    if (Object.values(errors).filter(val => val.length > 0).length) {
-      this.setErrors(errors);
-    }
-    else {
-      cart.updateShipping(this.state.address, this.state.city, this.state.postal, this.state.country);
-      cartHandler(cart);
-      history.push('/checkout/payment');
-    }
+  handleClick = () => {
+    this.props.checkShipping({
+      address: this.props.input.shipping.address,
+      city: this.props.input.shipping.city,
+      postal: this.props.input.shipping.postal,
+      country: this.props.input.shipping.country
+    });
   }
 
   render() {
@@ -75,26 +59,26 @@ class ShippingForm extends Component {
               <Form>
                 <FormGroup>
                   <Label for="address" className="col-form-label">Address</Label>
-                  <Input type="text" name="address" id="address" className="flat" placeholder="Enter address" value={this.state.address} invalid={this.state.errors.address.length > 0} onChange={(e) => this.setProperty(e)} />
-                  <FormFeedback>{this.state.errors.address}</FormFeedback>
+                  <Input type="text" name="address" id="address" className="flat" placeholder="Enter address" invalid={this.props.errors.errors.hasOwnProperty('address')} onChange={(e) => this.handleInput(e)} value={this.props.input.shipping.address} />
+                  <FormFeedback>{this.props.errors.errors.hasOwnProperty('address') ? this.props.errors.errors.address : ''}</FormFeedback>
                 </FormGroup>
                 <FormGroup>
                   <Label for="city" className="col-form-label">City</Label>
-                  <Input type="text" name="city" id="city" className="flat" placeholder="Enter city" value={this.state.city} invalid={this.state.errors.city.length > 0} onChange={(e) => this.setProperty(e)} />
-                  <FormFeedback>{this.state.errors.city}</FormFeedback>
+                  <Input type="text" name="city" id="city" className="flat" placeholder="Enter city" invalid={this.props.errors.errors.hasOwnProperty('city')} onChange={(e) => this.handleInput(e)} value={this.props.input.shipping.city} />
+                  <FormFeedback>{this.props.errors.errors.hasOwnProperty('city') ? this.props.errors.errors.city : ''}</FormFeedback>
                 </FormGroup>
                 <FormGroup>
                   <Label for="postal" className="col-form-label">Postal Code</Label>
-                  <Input type="text" name="postal" id="postal" className="flat" placeholder="Enter postal code" value={this.state.postal} invalid={this.state.errors.postal.length > 0} onChange={(e) => this.setProperty(e)} />
-                  <FormFeedback>{this.state.errors.postal}</FormFeedback>
+                  <Input type="text" name="postal" id="postal" className="flat" placeholder="Enter postal code" invalid={this.props.errors.errors.hasOwnProperty('postal')} onChange={(e) => this.handleInput(e)} value={this.props.input.shipping.postal} />
+                  <FormFeedback>{this.props.errors.errors.hasOwnProperty('postal') ? this.props.errors.errors.postal : ''}</FormFeedback>
                 </FormGroup>
                 <FormGroup>
                   <Label for="Country" className="col-form-label">Country</Label>
-                  <Input type="text" name="country" id="country" className="flat" placeholder="Enter country" value={this.state.country} invalid={this.state.errors.country.length > 0} onChange={(e) => this.setProperty(e)} />
-                  <FormFeedback>{this.state.errors.country}</FormFeedback>
+                  <Input type="text" name="country" id="country" className="flat" placeholder="Enter country" invalid={this.props.errors.errors.hasOwnProperty('country')} onChange={(e) => this.handleInput(e)} value={this.props.input.shipping.country} />
+                  <FormFeedback>{this.props.errors.errors.hasOwnProperty('country') ? this.props.errors.errors.country : ''}</FormFeedback>
                 </FormGroup>
                 <FormGroup>
-                  <Button color="dark" onClick={() => this.update()}>CONTINUE</Button>
+                  <Button color="dark" onClick={() => this.handleClick()}>CONTINUE</Button>
                 </FormGroup>
               </Form>
             </CardBody>
@@ -105,4 +89,4 @@ class ShippingForm extends Component {
   }
 }
 
-export default withRouter(ShippingForm);
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(ShippingForm));

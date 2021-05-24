@@ -5,7 +5,7 @@ import logger from 'redux-logger';
 // imports from user created files
 import { productsReducer } from './productsReducer';
 import { productReducer } from './productReducer';
-import { reviewReducer } from './reviewReducer';
+import { inputReducer } from './inputReducer';
 import { errorsReducer } from './errorsReducer';
 import { messageReducer } from './messageReducer';
 import { navReducer } from './navReducer';
@@ -13,6 +13,9 @@ import { modalReducer } from './modalReducer';
 import { pageReducer } from './pageReducer';
 import { searchReducer } from './searchReducer';
 import { userReducer } from './userReducer';
+import { cartReducer } from './cartReducer';
+import { orderReducer } from './orderReducer';
+import { ordersReducer } from './ordersReducer';
 
 export const ConfigureStore = () => {
   const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
@@ -20,14 +23,17 @@ export const ConfigureStore = () => {
     combineReducers({
       products: productsReducer,
       product: productReducer,
-      review: reviewReducer,
+      input: inputReducer,
       errors: errorsReducer,
       message: messageReducer,
       nav: navReducer,
       modal: modalReducer,
       page: pageReducer,
       search: searchReducer,
-      user: userReducer
+      user: userReducer,
+      cart: cartReducer,
+      order: orderReducer,
+      orders: ordersReducer
     }),
     composeEnhancers(applyMiddleware(thunk, logger))
   );

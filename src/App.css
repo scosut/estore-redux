@@ -309,14 +309,20 @@ input[type=radio] {
 }
 
 input[type=radio]:before {
-  content: "\f058";
-  color: #28a745;
+  content: "\f10c";
+  color: rgba(0, 0, 0, 0.25);
   font-family: "FontAwesome";
   font-size: 20px;
   left: 0;
+  opacity: 1;
   position: absolute;
   top: -8px;
   visibility: visible;
+}
+
+input[type=radio]:checked:before {
+  content: "\f05d";
+  color: #28a745;
 }
 
 a.form-link,
@@ -564,6 +570,7 @@ a.form-link:hover {
 
 .table .table-link {
   color: #28a745;
+  padding: 0;
   text-decoration: underline;
 }
 
