@@ -4,6 +4,7 @@ This application offers an e‑commece storefront for shoppers to purchase elect
 
 ### Applied Technologies: 
 - React, Router, and Redux perform conditional component rendering, site navigation, and state management. 
+- Reactstrap applies component-level styling.
 - FetchAPI coordinates requests from client to server. 
 - PHP and MySQL define REST API with endpoints and methods for shuttling data to and from the server.
 
