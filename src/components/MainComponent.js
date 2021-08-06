@@ -39,7 +39,7 @@ class MainComponent extends Component {
   render() {
     return (
       <TransitionGroup>
-        <CSSTransition key={this.props.location.key} timeout={1000} classNames="fade">
+        <CSSTransition key={this.props.location.key} timeout={1000} classNames="fade" appear={true}>
           <div className="App">
             <NavigationTop
               products={this.props.products.products}

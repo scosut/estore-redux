@@ -579,11 +579,12 @@ option:disabled {
   color: rgba(0, 0, 0, 0.3);
 }
 
-.fade-enter {
+.fade-appear, .fade-enter {
   opacity: 0;
   z-index: 1;
 }
 
+.fade-appear.fade-appear-active,
 .fade-enter.fade-enter-active {
   opacity: 1;
   transition: opacity 1s ease-in-out;
