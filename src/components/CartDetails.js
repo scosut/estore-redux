@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import { Button, Card, CardBody, Col, Input, Row, UncontrolledTooltip } from 'reactstrap';
 import ModalGeneric from './ModalGeneric';
-import { Link, withRouter } from 'react-router-dom';
+import { Link, withRouter, Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { deleteItem, updateItemQuantity, toggleModal } from '../redux/actionCreators';
+import { deleteItem, updateItemQuantity, toggleModal, clearRedirect, setRedirect } from '../redux/actionCreators';
 import Utility from '../shared/utility';
 
 const mapStateToProps = state => {
@@ -12,6 +12,7 @@ const mapStateToProps = state => {
     input: state.input,
     modal: state.modal,
     products: state.products,
+    redirect: state.redirect,
     user: state.user
   };
 };
@@ -19,7 +20,9 @@ const mapStateToProps = state => {
 const mapDispatchToProps = {
   toggleModal: (item) => toggleModal(item),
   deleteItem: (item) => deleteItem(item),
-  updateItemQuantity: (item, quantity) => updateItemQuantity(item, quantity)
+  updateItemQuantity: (item, quantity) => updateItemQuantity(item, quantity),
+  clearRedirect: () => clearRedirect(),
+  setRedirect: url => setRedirect(url)
 };
 
 const CartItem = ({ hasDivider, item, productQuantity, quantityHandler, toggle }) => {
@@ -56,6 +59,8 @@ const CartItem = ({ hasDivider, item, productQuantity, quantityHandler, toggle }
 
 class CartDetails extends Component {
   componentDidMount = () => {
+    this.props.clearRedirect();
+
     this.props.cart.items.forEach(item => {
       const productQuantity = this.props.products.products.filter(product => product.id === item.productId)[0].quantity;
 
@@ -63,12 +68,6 @@ class CartDetails extends Component {
         this.props.updateItemQuantity(item, productQuantity);
       }
     });
-  }
-
-  componentDidUpdate = () => {
-    if (this.props.cart.items.length === 0) {
-      this.props.history.push('/');
-    }
   }
 
   quantityHandler = (item, e) => {
@@ -79,58 +78,67 @@ class CartDetails extends Component {
     const cartItem = this.props.cart.items.filter(item => item.id === id)[0];
     this.props.deleteItem(cartItem);
     this.props.toggleModal();
+
+    if (this.props.cart.items.length === 1) {
+      this.props.setRedirect('/');
+    }
   }
 
   render() {
     const totalQuantity = Utility.getTotalQuantity(this.props.cart.items);
     const subtotal = Utility.getSubtotal(this.props.cart.items);
 
-    return (
-      <div className="container">
-        <div className="text-center text-sm-left mt-5 mb-3">
-          <h1>SHOPPING CART</h1>
+    if (this.props.redirect.url) {
+      return <Redirect to={this.props.redirect.url} />;
+    }
+    else {
+      return (
+        <div className="container">
+          <div className="text-center text-sm-left mt-5 mb-3">
+            <h1>SHOPPING CART</h1>
+          </div>
+          <Row className="row-product">
+            <Col sm={7} md={8} className="mb-5 cart">
+              {this.props.cart.items.map((item, index, arr) => {
+                return (
+                  <CartItem
+                    hasDivider={index < arr.length - 1}
+                    item={item}
+                    productQuantity={this.props.products.products.filter(product => product.id === item.productId)[0].quantity}
+                    key={item.id}
+                    quantityHandler={this.quantityHandler}
+                    toggle={this.props.toggleModal} />
+                )
+              })}
+            </Col>
+            <Col sm={5} md={4} className="mb-5">
+              <Card className="summary">
+                <CardBody className="flex-column">
+                  <div>{`SUBTOTAL (${totalQuantity} ITEM${totalQuantity !== 1 ? 'S' : ''}):`}</div>
+                  <div>{Utility.formatCurrency(subtotal)}</div>
+                  <div className="divider" />
+                  <div className="w-100">
+                    <Button
+                      color="dark"
+                      className="btn-block"
+                      tag={Link}
+                      to={this.props.user.user.id ? '/checkout/shipping' : '/checkout/signIn'}>
+                      CHECKOUT
+                    </Button>
+                  </div>
+                </CardBody>
+              </Card>
+            </Col>
+          </Row>
+          <ModalGeneric
+            body={`You have chosen to delete the ${this.props.modal.item.name} from your cart.`}
+            confirmHandler={() => this.deleteHandler(this.props.modal.item.id)}
+            isOpen={this.props.modal.modalOpen}
+            title="Delete Item"
+            toggle={this.props.toggleModal} />
         </div>
-        <Row className="row-product">
-          <Col sm={7} md={8} className="mb-5 cart">
-            {this.props.cart.items.map((item, index, arr) => {
-              return (
-                <CartItem
-                  hasDivider={index < arr.length - 1}
-                  item={item}
-                  productQuantity={this.props.products.products.filter(product => product.id === item.productId)[0].quantity}
-                  key={item.id}
-                  quantityHandler={this.quantityHandler}
-                  toggle={this.props.toggleModal} />
-              )
-            })}
-          </Col>
-          <Col sm={5} md={4} className="mb-5">
-            <Card className="summary">
-              <CardBody className="flex-column">
-                <div>{`SUBTOTAL (${totalQuantity} ITEM${totalQuantity !== 1 ? 'S' : ''}):`}</div>
-                <div>{Utility.formatCurrency(subtotal)}</div>
-                <div className="divider" />
-                <div className="w-100">
-                  <Button
-                    color="dark"
-                    className="btn-block"
-                    tag={Link}
-                    to={this.props.user.user.id ? '/checkout/shipping' : '/checkout/signIn'}>
-                    CHECKOUT
-                  </Button>
-                </div>
-              </CardBody>
-            </Card>
-          </Col>
-        </Row>
-        <ModalGeneric
-          body={`You have chosen to delete the ${this.props.modal.item.name} from your cart.`}
-          confirmHandler={() => this.deleteHandler(this.props.modal.item.id)}
-          isOpen={this.props.modal.modalOpen}
-          title="Delete Item"
-          toggle={this.props.toggleModal} />
-      </div>
-    );
+      );
+    }
   }
 }
 

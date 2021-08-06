@@ -16,6 +16,7 @@ import { userReducer } from './userReducer';
 import { cartReducer } from './cartReducer';
 import { orderReducer } from './orderReducer';
 import { ordersReducer } from './ordersReducer';
+import { redirectReducer } from './redirectReducer';
 
 export const ConfigureStore = () => {
   const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
@@ -33,7 +34,8 @@ export const ConfigureStore = () => {
       user: userReducer,
       cart: cartReducer,
       order: orderReducer,
-      orders: ordersReducer
+      orders: ordersReducer,
+      redirect: redirectReducer
     }),
     composeEnhancers(applyMiddleware(thunk, logger))
   );

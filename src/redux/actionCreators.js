@@ -446,6 +446,7 @@ export const fetchOrderById = (orderId) => dispatch => {
   return fetch(`https://cart.projectsbyscott.com/route/order/details/?id=${orderId}`)
     .then(response => {
       if (response.ok) {
+        dispatch(setRedirect(`/order-details/${orderId}`));
         return response;
       } else {
         const error = new Error(`Error ${response.status}: ${response.statusText}`);
@@ -480,6 +481,7 @@ export const checkShipping = (obj) => dispatch => {
       if (response.succeeded) {
         dispatch(addMessage("shipping successful"));
         dispatch(setShipping(newOrder));
+        dispatch(setRedirect("/checkout/payment"));
       }
       else {
         dispatch(addErrors(response.errors));
@@ -503,7 +505,8 @@ export const checkPayment = payment => dispatch => {
     .then(response => {
       if (response.succeeded) {
         dispatch(addMessage("payment successful"));
-        dispatch(setPayment(newOrder.payment))
+        dispatch(setPayment(newOrder.payment));
+        dispatch(setRedirect("/checkout/order-details"));
       }
       else {
         dispatch(addErrors(response.errors));
@@ -613,4 +616,14 @@ export const ordersFailed = errMess => ({
 export const addOrders = (orders, user) => ({
   type: actionTypes.ADD_ORDERS,
   payload: user.role === 'administrator' ? orders : orders.filter(order => order.userId === user.id)
+});
+
+// REDIRECT
+export const setRedirect = url => ({
+  type: actionTypes.SET_REDIRECT,
+  payload: url
+});
+
+export const clearRedirect = () => ({
+  type: actionTypes.CLEAR_REDIRECT
 });

@@ -5,7 +5,7 @@ import Message from './Message';
 import BreadcrumbGeneric from './BreadcrumbGeneric';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { postOrder, updateOrder } from '../redux/actionCreators';
+import { postOrder, updateOrder, clearRedirect } from '../redux/actionCreators';
 import Utility from '../shared/utility';
 
 const mapStateToProps = state => {
@@ -18,10 +18,15 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = {
   postOrder: (order) => postOrder(order),
-  updateOrder: (order) => updateOrder(order)
+  updateOrder: (order) => updateOrder(order),
+  clearRedirect: () => clearRedirect()
 };
 
 class OrderDetails extends Component {
+  componentDidMount = () => {
+    this.props.clearRedirect();
+  }
+
   placeOrder = () => {
     this.props.postOrder({
       address: this.props.cart.shipping.address,

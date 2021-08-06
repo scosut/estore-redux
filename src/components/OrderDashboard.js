@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Table, Button } from 'reactstrap';
 import PaginationBottom from './PaginationBottom';
 import Utility from '../shared/utility';
+import { Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { setPageIndex, fetchOrders, fetchOrderById, clearOrder } from '../redux/actionCreators';
 
@@ -10,6 +11,7 @@ const mapStateToProps = state => {
     order: state.order,
     orders: state.orders,
     page: state.page,
+    redirect: state.redirect,
     user: state.user
   };
 };
@@ -29,14 +31,7 @@ class OrderDashboard extends Component {
 
   pageHandler = (index, e) => {
     e.preventDefault();
-
     this.props.setPageIndex(index);
-  }
-
-  componentDidUpdate() {
-    if (this.props.order.order.id) {
-      this.props.history.push(`/order-details/${this.props.order.order.id}`);
-    }
   }
 
   gotoOrderDetails = (orderId) => {
@@ -44,6 +39,9 @@ class OrderDashboard extends Component {
   }
 
   render() {
+    if (this.props.redirect.url) {
+      return <Redirect to={this.props.redirect.url} />;
+    }
     if (this.props.orders.isLoading) {
       return (
         <div className="container">

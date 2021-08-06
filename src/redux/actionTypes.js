@@ -47,3 +47,6 @@ export const CLEAR_ORDER = 'CLEAR_ORDER';
 export const ORDERS_LOADING = 'ORDERS_LOADING';
 export const ADD_ORDERS = 'ADD_ORDERS';
 export const ORDERS_FAILED = 'ORDERS_FAILED';
+
+export const SET_REDIRECT = 'SET_REDIRECT';
+export const CLEAR_REDIRECT = 'CLEAR_REDIRECT';
